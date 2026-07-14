@@ -7,7 +7,7 @@ from sensor_msgs.msg import JointState
 import numpy as np
 from rclpy.time import Time
 from rclpy.constants import S_TO_NS
-
+import math
 
 class SimpleController(Node):
 
@@ -27,6 +27,10 @@ class SimpleController(Node):
         self.right_wheel_prev_pos = 0.0
 
         self.prev_time = self.get_clock().now()
+
+        self.x_ = 0.0
+        self.y_ = 0.0
+        self.theta_ = 0.0
 
 
         self.wheel_cmd_pub_ = self.create_publisher(Float64MultiArray, "simple_velocity_controller/commands", 10)
@@ -68,9 +72,16 @@ class SimpleController(Node):
 
         linear =  ((self.wheel_radius_ * fi_right) + (self.self.self.wheel_radius_ * fi_left)) / 2
         angular = ((self.wheel_radius_ * fi_right) - (self.self.self.wheel_radius_ * fi_left)) / self.wheel_separation_
-                   
+
+        d_s = (self.wheel_radius_ * dp_right + self.wheel_radius_* dp_left) / 2 
+        d_theta = (self.wheel_radius_ * dp_right - self.wheel_radius_* dp_left) / self.wheel_separation_
+
+        self.theta_ += d_theta
+        self.x_ += d_s * math.cos(self.theta_)
+        self.y_ += d_s * math.sin(self.theta_)
 
         self.get_logger().info("Linear: %f, angular: %f" % (linear, angular))
+        self.get_logger().info("x: %f, y: %f, theta: %f" % (self.x_, self.y_, self.theta_ ))
 
 
 
